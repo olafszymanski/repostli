@@ -8,5 +8,11 @@ terraform {
 }
 
 provider "aws" {
-    region = "us-east-1"
+  region = "us-east-1"
+}
+
+module "api" {
+  source      = "../modules/api"
+  prefix      = var.prefix
+  environment = var.environment
 }
