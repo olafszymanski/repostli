@@ -11,3 +11,8 @@ build:
 .PHONY: clean
 clean:
 	rm -rf build
+
+.PHONY: fmt
+fmt:
+	go fmt ./...
+	terraform fmt -recursive
