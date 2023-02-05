@@ -14,9 +14,17 @@ resource "aws_iam_role" "signup" {
   })
 }
 
+resource "aws_lambda_permission" "signup" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.signup.function_name
+  principal     = "apigateway.amazonaws.com"
+}
+
 resource "aws_lambda_function" "signup" {
   function_name = "signup-${var.environment}"
-  role          = aws_iam_role.signup.arn
+
+  role = aws_iam_role.signup.arn
 
   source_code_hash = filebase64sha256("../../build/signup.zip")
   filename         = "../../build/signup.zip"
