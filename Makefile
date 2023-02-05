@@ -15,3 +15,8 @@ clean:
 fmt:
 	go fmt ./...
 	terraform fmt -recursive
+
+.PHONY: deploy
+deploy:
+	terraform -chdir=terraform/prod get
+	terraform -chdir=terraform/prod apply
