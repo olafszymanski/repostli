@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"errors"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -23,7 +23,7 @@ var Headers = map[string]string{
 	"Access-Control-Allow-Origin":  "*",
 }
 
-var ErrInvalidRequest = fmt.Errorf("invalid request")
+var ErrInvalidRequest = errors.New("invalid request")
 
 type handler func(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error)
 
