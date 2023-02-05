@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/go-playground/validator"
+	"github.com/olafszymanski/repostli/pkg/response"
 )
 
 type input struct {
@@ -15,51 +16,45 @@ type input struct {
 	Password string `json:"password" validate:"required"`
 }
 
-var headers = map[string]string{
+var Headers = map[string]string{
 	"Content-Type":                 "application/json",
 	"Access-Control-Allow-Headers": "Content-Type",
 	"Access-Control-Allow-Methods": "POST",
 	"Access-Control-Allow-Origin":  "*",
 }
 
-var (
-	ErrUnmarshalRequest = fmt.Errorf("failed to unmarshal request")
-	ErrInvalidRequest   = fmt.Errorf("invalid request")
-)
+var ErrInvalidRequest = fmt.Errorf("invalid request")
 
-type RequestHandler func(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error)
+type handler func(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error)
 
-func NewRequestHandler(validator *validator.Validate) RequestHandler {
+func NewHandler(validator *validator.Validate) handler {
 	return func(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 		var input input
 		if err := json.Unmarshal([]byte(request.Body), &input); err != nil {
-			err = fmt.Errorf("%w: %s", ErrUnmarshalRequest, err)
-			return events.APIGatewayProxyResponse{
-				StatusCode: 400,
-				Headers:    headers,
-				Body:       err.Error(),
-			}, err
+			return response.New(
+				response.WithStatusCode(400),
+				response.WithHeaders(Headers),
+				response.WithError(ErrInvalidRequest),
+			)
 		}
 
 		if err := validator.Struct(input); err != nil {
-			err = fmt.Errorf("%w: %s", ErrInvalidRequest, err)
-			return events.APIGatewayProxyResponse{
-				StatusCode: 400,
-				Headers:    headers,
-				Body:       err.Error(),
-			}, err
+			return response.New(
+				response.WithStatusCode(400),
+				response.WithHeaders(Headers),
+				response.WithError(ErrInvalidRequest),
+			)
 		}
 
 		// TODO: Create user in database
 
-		return events.APIGatewayProxyResponse{
-			StatusCode: 200,
-			Headers:    headers,
-			Body:       fmt.Sprintf("Hello %s!", input.Email),
-		}, nil
+		return response.New(
+			response.WithStatusCode(200),
+			response.WithHeaders(Headers),
+		)
 	}
 }
 
 func main() {
-	lambda.Start(NewRequestHandler(validator.New()))
+	lambda.Start(NewHandler(validator.New()))
 }
